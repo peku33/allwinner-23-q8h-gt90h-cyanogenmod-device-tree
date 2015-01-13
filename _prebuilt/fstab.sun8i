@@ -1,0 +1,19 @@
+# Android fstab file.
+#<src>                                                  <mnt_point>         <type>    <mnt_flags and options>                               <fs_mgr_flags>
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+
+
+
+/dev/block/by-name/system	/system             ext4      ro                                            	wait
+/dev/block/by-name/cache	/cache              ext4      noatime,nosuid,nodev,nomblk_io_submit,barrier=1	wait,check
+/dev/block/by-name/databk	/databk             ext4      noatime,nosuid,nodev,nomblk_io_submit,barrier=1	wait,check
+/dev/block/by-name/data	/data		    ext4      noatime,nosuid,nodev,nomblk_io_submit,barrier=1,noauto_da_alloc wait,checkencryptable=/dev/block/by-name/databk
+/devices/virtual/block/nandj    /mnt/sdcard         vfat      rw,relatime,fmask=0000,dmask=0000                 wait,check,noemulatedsd,voldmanaged=sdcard:auto
+#/devices/platform/sunxi-mmc.2/mmc_host  /mnt/sdcard         vfat    rw,relatime,fmask=0000,dmask=0000                                       wait,check,voldmanaged=sdcard:auto
+/devices/platform/sunxi-mmc.0/mmc_host  /mnt/extsd          vfat    rw,relatime,fmask=0000,dmask=0000                                       wait,check,voldmanaged=extsd:auto
+/devices/platform/sunxi-mmc.1/mmc_host  /mnt/extsd          vfat    rw,relatime,fmask=0000,dmask=0000                                       wait,check,voldmanaged=extsd:auto
+/devices/platform/sunxi-ehci.1             /mnt/usbhost1       vfat    rw,relatime,fmask=0000,dmask=0000                                       wait,check,voldmanaged=usbhost1:auto
+/devices/platform/sunxi_hcd_host0          /mnt/usbhost1       vfat    rw,relatime,fmask=0000,dmask=0000                                       wait,check,voldmanaged=usbhost1:auto
+/devices/platform/sunxi-ohci.1             /mnt/usbhost1       vfat    rw,relatime,fmask=0000,dmask=0000                                       wait,check,voldmanaged=usbhost1:auto
+/dev/block/zram0 none swap defaults zramsize=134217728

@@ -1,0 +1,13 @@
+# mount point	fstype		device					device2
+/bootloader 	vfat  		/dev/block/by-name/bootloader
+/env      		emmc    	/dev/block/by-name/env
+/boot			emmc		/dev/block/by-name/boot
+/system			ext4		/dev/block/by-name/system
+/data			ext4		/dev/block/by-name/data
+/misc			emmc		/dev/block/by-name/misc
+/recovery		ext4		/dev/block/by-name/recovery
+/cache 			ext4		/dev/block/by-name/cache
+/sdcard			vfat		/dev/block/by-name/UDISK
+/extsd      vfat    /dev/block/mmcblk0
+
+

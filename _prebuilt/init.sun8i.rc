@@ -1,0 +1,218 @@
+import init.sun8i.usb.rc
+
+on init
+#See storage config details at http://source.android.com/tech/storage/
+#	mkdir /mnt/shell/emulated 0700 shell shell
+#	mkdir /storage/emulated 0555 root root
+
+#	export EXTERNAL_STORAGE /storage/emulated/legacy
+#	export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
+#	export EMULATED_STORAGE_TARGET /storage/emulated
+#	export MEDIA_STORAGE /mnt/media/sdcard
+
+#	Support legacy paths
+#	symlink /storage/emulated/legacy /sdcard
+#	symlink /storage/emulated/legacy /mnt/sdcard
+#	symlink /storage/emulated/legacy /storage/sdcard0
+#	symlink /mnt/shell/emulated/0 /storage/emulated/legacy
+
+	export EXTERNAL_STORAGE /mnt/sdcard
+	mkdir /mnt/sdcard 0700 system system
+	symlink /mnt/sdcard /sdcard
+	symlink /mnt/sdcard /storage/sdcard0
+	
+	mkdir /mnt/extsd 0700 system system
+	symlink /mnt/extsd  /storage/extsd
+	symlink /mnt/sdcard /storage/sdcard1
+	
+	mkdir /mnt/usbhost1 0700 system system
+	symlink /mnt/usbhost1  /storage/usbhost1
+	symlink /mnt/usbhost1 /storage/sdcard2
+	
+	mount debugfs debugfs /sys/kernel/debug
+	mkdir /databk 0700 root  system
+# RDA add begin
+on post-fs-data
+    mknod /dev/rdacombo  c 194 0;
+    chmod 0666 /dev/rdacombo
+    chown system system /dev/rdacombo
+    setprop wifi.interface wlan0
+    # for store rda bt addresss
+    mkdir /data/misc/bluetooth 0777 bluetooth net_bt_stack
+    # wifi
+    mkdir /data/misc/bluedroid 0777 bluetooth net_bt_stack
+    mkdir /data/misc/wifi 0777 wifi wifi
+    mkdir /data/misc/wifi/sockets 0777 wifi wifi
+    mkdir /data/misc/wpa_supplicant 0777 wifi wifi
+    mkdir /data/misc/dhcp 0770 dhcp dhcp
+    chown dhcp dhcp /data/misc/dhcp
+    chown wifi wifi /data/misc/wifi
+    chmod 777 /data/misc/wifi/sockets
+    chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+# RDA add end
+
+on early-fs
+	mount_all /fstab.sun8i
+	setprop ro.crypto.fuse_sdcard true
+	insmod /system/vendor/modules/disp.ko
+	insmod /system/vendor/modules/lcd.ko
+	insmod /system/vendor/modules/mali.ko
+	insmod /system/vendor/modules/leds-sunxi.ko
+
+on post-fs-data
+	#mkdir /data/media 0770 media_rw media_rw
+	#mkdir /mnt/media/sdcard 0770 media_rw media_rw
+
+on fs
+	format_userdata /dev/block/by-name/UDISK polaris
+# radio related, such as imei.conf
+	mkdir /data/misc/radio 0777 system radio
+
+# radio related, 3G Data Card
+	chmod 0751 /system/xbin/usb_modeswitch.sh
+	chmod 0751 /system/xbin/ppp/call-pppd
+	chmod 0751 /system/etc/ppp/ip-up
+	chmod 0751 /system/etc/ppp/ip-down
+	chown radio system /system/xbin/usb_modeswitch.sh
+	chown radio system /system/xbin/ppp/call-pppd
+	chown radio system /system/etc/ppp/ip-up
+	chown radio system /system/etc/ppp/ip-down
+
+#vibrator
+	# insmod /system/vendor/modules/sunxi-vibrator.ko
+	# chmod 0666 /sys/class/timed_output/sunxi-vibrator/enable
+
+#insmod tp and keyboard gsensor 
+	insmod /system/vendor/modules/sw-device.ko
+	insmod /system/vendor/modules/sunxi-keyboard.ko
+	
+#csi module
+        insmod /system/vendor/modules/videobuf-core.ko
+        insmod /system/vendor/modules/videobuf-dma-contig.ko
+        insmod /system/vendor/modules/cam_detect.ko
+#        insmod /system/vendor/modules/actuator.ko
+#       insmod /system/vendor/modules/ad5820_act.ko
+        insmod /system/vendor/modules/cci.ko
+        insmod /system/vendor/modules/vfe_os.ko
+        insmod /system/vendor/modules/vfe_subdev.ko
+        insmod /system/vendor/modules/sp0a19.ko
+        insmod /system/vendor/modules/hi253.ko
+        insmod /system/vendor/modules/gc0309.ko
+        insmod /system/vendor/modules/vfe_v4l2.ko
+        insmod /system/vendor/modules/camera_led_con.ko
+        insmod /system/vendor/modules/rda_fm_ctrl.ko
+
+
+# bluetooth
+    # UART device
+    chmod 0660 /dev/ttyS1
+    chown bluetooth net_bt_stack /dev/ttyS1
+
+    # power up/down interface
+    chmod 0660 /sys/class/rfkill/rfkill0/state
+    chmod 0660 /sys/class/rfkill/rfkill0/type
+    chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
+    chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
+    write /sys/class/rfkill/rfkill0/state 0
+
+    # bluetooth LPM
+    chmod 0220 /proc/bluetooth/sleep/lpm
+    chmod 0220 /proc/bluetooth/sleep/btwrite
+    chown bluetooth net_bt_stack /proc/bluetooth/sleep/lpm
+    chown bluetooth net_bt_stack /proc/bluetooth/sleep/btwrite
+    # RDA add begin
+    # wifi & bt
+    chmod 0777 /dev/rdacombo
+    chmod 0777 /dev/ttyS1
+    chown bluetooth bluetooth /dev/ttyS1
+    chmod 0777 /dev/rfkill
+    chown bluetooth net_bt_stack /data/misc/bluetooth
+    chmod 0777 /dev/rdafmRadio
+    chmod 0777 /dev/FM
+    # RDA add end
+
+#insmod usb ethernet
+	insmod /system/vendor/modules/asix.ko
+	insmod /system/vendor/modules/qf9700.ko
+	insmod /system/vendor/modules/mcs7830.ko
+	insmod /system/vendor/modules/rtl8150.ko
+
+# talking standby
+	chown radio system /sys/power/scene_lock
+	chmod 0644 /sys/power/scene_lock
+	chown radio system /sys/power/scene_unlock
+	chmod 0644 /sys/power/scene_unlock
+	chown radio system /sys/power/scene_state
+	chmod 0644 /sys/power/scene_state
+# ril related services
+import init.sunxi.3gdongle.rc
+	
+#service logcat /system/bin/logcat -r 1000 -n 10 -v time -f /data/local/logcat.log
+#	class main
+
+#logger service: logger [kernel|android|radio] 
+service logger_kernel /system/bin/logger.sh kernel
+	user root
+	disabled
+service logger_android /system/bin/logger.sh android
+	user root
+	disabled
+service logger_radio /system/bin/logger.sh radio
+	user root
+	disabled
+on property:rw.logger=1
+	start logger_kernel
+	start logger_android
+	start logger_radio
+
+# virtual sdcard daemon running as media_rw (1023)
+# service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
+#    class late_start
+    
+# 1. realtek wifi service
+# 1.1 realtek wifi sta service
+#service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
+#    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
+#    -O/data/misc/wifi/sockets \
+#    -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
+#    #   we will start as root and wpa_supplicant will switch to user wifi
+#    #   after setting up the capabilities required for WEXT
+#    #   user wifi
+#    #   group wifi inet keystore
+#    class main
+#    socket wpa_wlan0 dgram 660 wifi wifi
+#    disabled
+#    oneshot
+
+# 1.2 realtek wifi sta p2p concurrent service
+#service p2p_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
+#	-ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf \
+#	-e/data/misc/wifi/entropy.bin -N \
+#	-iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
+#	-O/data/misc/wifi/sockets \
+#	-g@android:wpa_wlan0
+#	class main
+#	socket wpa_wlan0 dgram 660 wifi wifi
+#	disabled
+#	oneshot
+# 2.3 RDA wifi RDA5990/RDA5991 wpa_supplicant service
+service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant -dd -Dwext -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf \
+   -g@android:wpa_wlan0
+    group system wifi inet keystore
+    socket wpa_wlan0 dgram 660 wifi wifi
+    disabled
+    oneshot
+service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -A -dd
+    disabled
+    oneshot
+
+# RDA add end
+	
+on property:sys.boot_completed=1
+    start ril-daemon
+    start u3gmonitor
+       
+#clouds ota service
+service shcmd /system/bin/shell_cmd_service
+       class main
+

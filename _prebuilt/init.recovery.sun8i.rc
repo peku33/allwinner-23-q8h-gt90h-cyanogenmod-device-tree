@@ -1,0 +1,5 @@
+on init
+    insmod /nand.ko
+    insmod /disp.ko
+    insmod /lcd.ko
+    insmod /sunxi-keyboard.ko

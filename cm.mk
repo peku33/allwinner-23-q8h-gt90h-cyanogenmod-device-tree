@@ -1,0 +1,1 @@
+$(call inherit-product, device/aliexpress2/polaris_p1/device_polaris_p1.mk)
